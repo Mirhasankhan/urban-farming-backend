@@ -17,6 +17,8 @@ model User {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   vendorProfile VendorProfile?
+  communityPost CommunityPost[]
+   comment Comment[]
 
   @@map("users")
 }
@@ -87,6 +89,30 @@ model Produce {
 
   @@unique([vendorId, name])
   @@map("produces")
+}
+model CommunityPost {
+  id                  String              @id @default(uuid()) @db.Uuid
+  userId            String              @db.Uuid
+  postContent                String
+  likes String[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+   comment Comment[]
+ 
+  @@map("communityPosts")
+}
+model Comment {
+  id                  String              @id @default(uuid()) @db.Uuid
+  userId            String              @db.Uuid
+  postId                String @db.Uuid
+  content
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post CommunityPost    @relation(fields: [postId], references: [id], onDelete: Cascade)
+ 
+  @@map("comments")
 }
 
 enum UserStatus {

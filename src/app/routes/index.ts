@@ -4,6 +4,7 @@ import { authRoute } from "../modules/auth/auth.routes";
 import { vendorRoute } from "../modules/vendor/vendor.route";
 import { produceRoute } from "../modules/produce/produce.route";
 import { adminRoute } from "../modules/admin/admin.route";
+import { communityPostRoute } from "../modules/community/community.route";
 
 const router = express.Router();
 
@@ -27,6 +28,10 @@ const moduleRoutes = [
   {
     path: "/admin",
     route: adminRoute,
+  },
+  {
+    path: "/community-post",
+    route: communityPostRoute,
   },
 ];
 
