@@ -4,12 +4,14 @@ import { UserRole } from "@prisma/client";
 import { orderController } from "./order.controller";
 import validateRequest from "../../middlewares/validateRequest";
 import { orderValidation } from "./order.validation";
+import rateLimiter from "../../middlewares/rateLimiter";
 
 const router = express.Router();
 
 router.post(
   "/create",
   auth(UserRole.CUSTOMER),
+  rateLimiter(1, 5),
   validateRequest(orderValidation.orderSchema),
   orderController.createOrder,
 );

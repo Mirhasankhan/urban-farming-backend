@@ -4,6 +4,7 @@ import validateRequest from "../../middlewares/validateRequest";
 import { userValidation } from "./user.validation";
 import { UserRole } from "@prisma/client";
 import auth from "../../middlewares/auth";
+import rateLimiter from "../../middlewares/rateLimiter";
 
 const router = express.Router();
 
@@ -14,14 +15,20 @@ router.post(
 );
 router.post(
   "/otp-resend",
+  rateLimiter(1, 2),
   validateRequest(userValidation.resendOtpSchema),
   UserControllers.resendOTP,
 );
 router.post(
   "/verify-account",
+  rateLimiter(1, 3),
   validateRequest(userValidation.signUpVerificationSchema),
   UserControllers.createUser,
 );
-router.get("/profile", UserControllers.getProfile);
+router.get(
+  "/profile",
+  rateLimiter(1, 5),
+  UserControllers.getProfile
+);
 
 export const userRoutes = router;
