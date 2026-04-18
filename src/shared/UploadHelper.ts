@@ -4,13 +4,13 @@ import path from "path";
 
 
 const DO_CONFIG = {
-  endpoint: "https://hodsapp91.atl1.digitaloceanspaces.com",
+  endpoint: "https:/p91.atl1.digitaloceanspaces.com",
   region: "atl1",
   credentials: {
-    accessKeyId: "DO00WBH2X77GCCYEUPHP",
-    secretAccessKey: "xPg8rWV1fYmqvgou9cfBaHs+ThF15SGN34KtROfWmeI",
+    accessKeyId: "",
+    secretAccessKey: "fWmeI",
   },
-  spaceName: "hodsapp91",
+  spaceName: "",
 };
 
 const s3Config: S3ClientConfig = {
