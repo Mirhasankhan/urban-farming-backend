@@ -20,5 +20,15 @@ router.patch(
   auth(UserRole.ADMIN),
   adminController.approveVendorCertification,
 );
+router.patch(
+  "/approve-produce-certification/:id",
+  auth(UserRole.ADMIN),
+  adminController.approveProduceCertification,
+);
+router.get(
+  "/non-certified-produces",
+  auth(),
+  adminController.nonCertifiedProduces,
+);
 
 export const adminRoute = router;

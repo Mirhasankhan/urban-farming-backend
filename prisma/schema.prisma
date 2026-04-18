@@ -8,17 +8,21 @@ generator client {
 }
 
 model User {
-  id            String         @id @default(uuid(7)) @db.Uuid
-  fullName      String
-  email         String         @unique
-  password      String
-  role          UserRole
-  status        UserStatus     @default(Pending)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  vendorProfile VendorProfile?
-  communityPost CommunityPost[]
-   comment Comment[]
+  id               String            @id @default(uuid(7)) @db.Uuid
+  fullName         String
+  email            String            @unique
+  password         String
+  role             UserRole
+  status           UserStatus        @default(Pending)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  vendorProfile    VendorProfile?
+  communityPost    CommunityPost[]
+  comment          Comment[]
+  replies          Reply[]
+  rentApplications RentApplication[]
+  rents            Rent[]
+  orders           Order[]
 
   @@map("users")
 }
@@ -58,6 +62,7 @@ model VendorProfile {
   user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   sustainabilityCert  SustainabilityCert[]
   produces            Produce[]
+  rentalSpaces        RentalSpace[]
 
   @@map("vendorProfiles")
 }
@@ -86,39 +91,134 @@ model Produce {
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
   vendor              VendorProfile       @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  orders              Order[]
 
   @@unique([vendorId, name])
   @@map("produces")
 }
+
+model Order {
+  id              String      @id @default(uuid()) @db.Uuid
+  produceId       String      @db.Uuid
+  customerId      String      @db.Uuid
+  quantity        Int
+  subtotal        Float
+  status          OrderStatus
+  cancelledReason String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  produce         Produce     @relation(fields: [produceId], references: [id], onDelete: Cascade)
+  customer        User        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("orders")
+}
+
+model RentalSpace {
+  id               String            @id @default(uuid()) @db.Uuid
+  vendorId         String            @db.Uuid
+  location         String
+  price            Float
+  size             String
+  availability     Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  vendor           VendorProfile     @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  rentApplications RentApplication[]
+  rents            Rent[]
+
+  @@map("rentalSpaces")
+}
+
+model RentApplication {
+  id        String      @id @default(uuid()) @db.Uuid
+  spaceId   String      @db.Uuid
+  userId    String      @db.Uuid
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  space     RentalSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("rentApplications")
+}
+
+model Rent {
+  id        String      @id @default(uuid()) @db.Uuid
+  spaceId   String      @db.Uuid
+  userId    String      @db.Uuid
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  space     RentalSpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plants    Plant[]
+
+  @@map("rents")
+}
+
+model Plant {
+  id        String         @id @default(uuid()) @db.Uuid
+  rentId    String         @db.Uuid
+  plantName String
+  quantity  Int
+  condition PlantCondition @default(SEEDED)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  rent      Rent           @relation(fields: [rentId], references: [id], onDelete: Cascade)
+
+  @@map("plants")
+}
+
 model CommunityPost {
-  id                  String              @id @default(uuid()) @db.Uuid
-  userId            String              @db.Uuid
-  postContent                String
-  likes String[]
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-   comment Comment[]
- 
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  postContent String
+  likes       String[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment     Comment[]
+
   @@map("communityPosts")
 }
+
 model Comment {
-  id                  String              @id @default(uuid()) @db.Uuid
-  userId            String              @db.Uuid
-  postId                String @db.Uuid
-  content
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post CommunityPost    @relation(fields: [postId], references: [id], onDelete: Cascade)
- 
+  id        String        @id @default(uuid()) @db.Uuid
+  userId    String        @db.Uuid
+  postId    String        @db.Uuid
+  content   String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  replies   Reply[]
+
   @@map("comments")
+}
+
+model Reply {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  commentId String   @db.Uuid
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@map("replies")
 }
 
 enum UserStatus {
   Pending
   Active
   Blocked
+}
+
+enum OrderStatus {
+  Pending
+  Active
+  Cancelled
+  Completed
+  Shipped
 }
 
 enum CertificationStatus {
@@ -130,6 +230,16 @@ enum UserRole {
   ADMIN
   VENDOR
   CUSTOMER
+}
+
+enum PlantCondition {
+  SEEDED
+  GROWING
+  GOOD
+  FAIR
+  POOR
+  DAMAGED
+  DEAD
 }
 
 enum ProductCategory {

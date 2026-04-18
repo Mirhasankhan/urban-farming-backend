@@ -13,6 +13,11 @@ router.post(
   validateRequest(produceValidation.productSchema),
   produceController.createProduce,
 );
+router.get(
+  "/all-certified",
+  auth(),
+  produceController.certifiedProduces,
+);
 
 
 export const produceRoute = router;

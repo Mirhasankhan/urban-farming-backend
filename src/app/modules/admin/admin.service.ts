@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, ProductCategory } from "@prisma/client";
 import prisma from "../../../shared/prisma";
 import ApiError from "../../../errors/ApiErrors";
 
@@ -141,12 +141,107 @@ const approveVendorCertification = async (vendorId: string) => {
     },
   });
 
-  return
+  return;
+};
+const approveProduceCertification = async (produceId: string) => {
+  const produce = await prisma.produce.findUnique({
+    where: { id: produceId },
+    select: { certificationStatus: true },
+  });
+
+  if (!produce) {
+    throw new ApiError(404, "Produce not found");
+  }
+
+  if (produce.certificationStatus !== "NotCertified") {
+    throw new ApiError(400, "Produce is already certified");
+  }
+
+  await prisma.produce.update({
+    where: { id: produceId },
+    data: {
+      certificationStatus: "Certified",
+    },
+  });
+
+  return;
+};
+
+const getAllNonCertifiedProducesFromDB = async (
+  page: number = 1,
+  limit: number = 10,
+  search?: string,
+  category?: ProductCategory,
+) => {
+  const whereCondition: Prisma.ProduceWhereInput = {
+    certificationStatus: "NotCertified",
+    ...(search && {
+      OR: [
+        { name: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ],
+    }),
+    ...(category && {
+      category: { equals: category },
+    }),
+  };
+
+  const totalProduces = await prisma.produce.count({
+    where: { certificationStatus: "NotCertified" },
+  });
+
+  const filteredProducesCount = await prisma.produce.count({
+    where: whereCondition,
+  });
+
+  const totalPages = Math.ceil(filteredProducesCount / limit);
+
+  const produces = await prisma.produce.findMany({
+    where: whereCondition,
+    skip: (page - 1) * limit,
+    take: limit,
+    orderBy: {
+      createdAt: "desc",
+    },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      availableQuantity: true,
+      price: true,
+      category: true,
+      createdAt: true,
+      vendor: {
+        select: {
+          id: true,
+          farmLocation: true,
+          farmName: true,
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return {
+    meta: {
+      totalProduces,
+      filteredProduces: filteredProducesCount,
+      totalPages,
+      currentPage: page,
+    },
+    produces,
+  };
 };
 
 export const adminService = {
   getAllCustomersFromDB,
   getAllVendorsFromDB,
   approveVendorCertification,
-  
+  approveProduceCertification,
+  getAllNonCertifiedProducesFromDB,
 };

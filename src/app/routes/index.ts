@@ -5,6 +5,8 @@ import { vendorRoute } from "../modules/vendor/vendor.route";
 import { produceRoute } from "../modules/produce/produce.route";
 import { adminRoute } from "../modules/admin/admin.route";
 import { communityPostRoute } from "../modules/community/community.route";
+import { rentRoute } from "../modules/rent/rent.route";
+import { orderRoute } from "../modules/order/order.route";
 
 const router = express.Router();
 
@@ -32,6 +34,14 @@ const moduleRoutes = [
   {
     path: "/community-post",
     route: communityPostRoute,
+  },
+  {
+    path: "/rent",
+    route: rentRoute,
+  },
+  {
+    path: "/order",
+    route: orderRoute,
   },
 ];
 
